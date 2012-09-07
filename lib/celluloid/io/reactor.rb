@@ -39,7 +39,12 @@ module Celluloid
           raise TypeError, "can't convert #{io.class} into IO" unless io.is_a? IO
         end
 
-        monitor = @selector.register(io, set)
+        monitor = if @selector.registered?(io)  
+          #ugly hack on @selectables
+          @selector.instance_eval { @selectables[io] }
+        else
+          @selector.register(io, set)
+        end
         monitor.value = Task.current
         Task.suspend :iowait
       end
